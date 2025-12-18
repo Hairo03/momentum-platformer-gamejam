@@ -10,12 +10,12 @@ extends CharacterBody2D
 
 # Movement Constants
 const MOVE_SPEED: int = 120
-const JUMP_FORCE: int = -300
+const JUMP_FORCE: int = -330
 const WALL_JUMP_PUSHBACK: int = 200
 
 # Friction Constants
 const GROUND_FRICTION: float = 0.10
-const ICE_FRICTION: float = 0.005
+const ICE_FRICTION: float = 0.0075
 const MOMENTUM_FRICTION: float = 0.05
 const AIR_ACCELERATION: float = 0.05
 const AIR_DECELERATION: float = 0.005
@@ -78,11 +78,11 @@ func _physics_process(delta: float) -> void:
 	var was_on_floor := is_on_floor()
 	var was_on_wall := is_on_wall_only()
 	handle_animation()
-	move_and_slide()
 	handle_friction()
 	handle_ability()
 	handle_jump()
 	handle_death()
+	move_and_slide()
 	
 	if was_on_floor and not is_on_floor():
 		coyote_timer.start()
@@ -162,9 +162,9 @@ func _apply_ground_movement(input_dir: float) -> void:
 		if is_turning:
 			velocity.x = lerpf(velocity.x, 0.0, AIR_BRAKE_SPEED)
 	elif input_dir:
-		velocity.x = lerpf(velocity.x, input_dir * MOVE_SPEED, current_friction)
+		velocity.x = lerpf(velocity.x, input_dir * MOVE_SPEED, current_friction * 0.5)
 	else:
-		velocity.x = lerpf(velocity.x, 0.0, current_friction)
+		velocity.x = lerpf(velocity.x, 0.0, current_friction * 0.75)
 
 func _apply_air_movement(input_dir: float) -> void:
 	if not input_dir:
@@ -215,6 +215,9 @@ func handle_jump() -> void:
 			var jump_dir := get_wall_normal()
 			velocity.x = jump_dir.x * WALL_JUMP_PUSHBACK
 			velocity.y = JUMP_FORCE
+	
+	if Input.is_action_just_released("jump"):
+		velocity.y *= 0.5
 
 func get_current_gravity() -> float:
 	if is_on_wall_only() and velocity.y > 0:
