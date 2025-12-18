@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://co2wdcxpoea55"]
+
+[ext_resource type="PackedScene" uid="uid://bhgdfuras5cwj" path="res://scenes/player/player.tscn" id="1_0wfyh"]
+[ext_resource type="PackedScene" uid="uid://b0n53oqinfajg" path="res://scenes/levels/level1.tscn" id="1_sugp2"]
+
+[node name="World" type="Node2D"]
+
+[node name="Level1" parent="." instance=ExtResource("1_sugp2")]
+position = Vector2(0, 108)
+
+[node name="Player" parent="." groups=["Player"] instance=ExtResource("1_0wfyh")]
+position = Vector2(-202, 75)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+scale = Vector2(-0.8534351, 1)
+limit_enabled = false
+limit_left = -240
+limit_top = -135
+limit_right = 240
+limit_bottom = 135
+position_smoothing_enabled = true
