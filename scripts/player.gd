@@ -8,6 +8,9 @@ extends CharacterBody2D
 @onready var coyote_timer: Timer = $CoyoteTimer
 @onready var wall_coyote_timer: Timer = $WallCoyoteTimer
 
+# Signals
+signal died
+
 # Movement Constants
 const MOVE_SPEED: int = 120
 const JUMP_FORCE: int = -330
@@ -15,7 +18,7 @@ const WALL_JUMP_PUSHBACK: int = 200
 
 # Friction Constants
 const GROUND_FRICTION: float = 0.10
-const ICE_FRICTION: float = 0.0075
+const ICE_FRICTION: float = 0.005
 const MOMENTUM_FRICTION: float = 0.05
 const AIR_ACCELERATION: float = 0.05
 const AIR_DECELERATION: float = 0.005
@@ -34,27 +37,36 @@ const FAIRY_TWEEN_DURATION: float = 0.2
 
 var _trajectory_end_point: Vector2 = Vector2.ZERO
 
-# Ability state - consolidated
+# Ability Vars
 var _is_charging_ability: bool = false
 var _ability_available: bool = true
 var _current_ability_power: float = MIN_ABILITY_POWER
 
-# Movement state
+# Movement Vars
 var current_friction: float = GROUND_FRICTION
 var is_dead: bool = false
 var on_ice: bool = false
 var _input_direction: float = 0.0
+var can_move: bool = true 
 
 var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 var wall_gravity: float = gravity / 10
 var current_gravity: float = gravity
 
+enum State {
+	STATE_IDLE,
+	STATE_RUN,
+	STATE_JUMP,
+	STATE_FALL
+}
+var state: State = State.STATE_IDLE
+
 var _fairy_tween: Tween
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if is_dead:
 		return
-	
+
 	_fairy_tween = get_tree().create_tween()
 	if _is_charging_ability:
 		_fairy_tween.tween_property(fairy, "position", _trajectory_end_point, 0.2)
@@ -69,8 +81,6 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
-	print_debug("on_ice: ", on_ice)
-
 	current_gravity = get_current_gravity()
 	_input_direction = Input.get_axis("left", "right")
 
@@ -81,8 +91,8 @@ func _physics_process(delta: float) -> void:
 	handle_friction()
 	handle_ability()
 	handle_jump()
-	handle_death()
 	move_and_slide()
+	handle_death()
 	
 	if was_on_floor and not is_on_floor():
 		coyote_timer.start()
@@ -100,7 +110,7 @@ func handle_ability() -> void:
 	if Input.is_action_pressed("left_mouse"):
 		_charge_ability()
 	
-	if Input.is_action_just_released("left_mouse"):
+	if Input.is_action_just_released("left_mouse") and _is_charging_ability:
 		_release_ability()
 
 func _charge_ability() -> void:
@@ -119,6 +129,9 @@ func _release_ability() -> void:
 	cooldown_timer.start()
 
 func _can_use_ability() -> bool:
+	if is_dead:
+		return false
+
 	if is_on_floor() and not on_ice:
 		_ability_available = true
 	
@@ -139,15 +152,17 @@ func _apply_gravity(delta: float) -> void:
 		velocity.y += current_gravity * delta
 
 func _apply_horizontal_movement(input_dir: float) -> void:
-	if _is_charging_ability:
+	if _is_charging_ability or !can_move:
 		if is_on_floor():
 			velocity.x = lerpf(velocity.x, 0.0, current_friction)
 		return
 	
 	if is_on_floor():
 		_apply_ground_movement(input_dir)
+		state = State.STATE_RUN if input_dir != 0 else State.STATE_IDLE
 	else:
 		_apply_air_movement(input_dir)
+		state = State.STATE_FALL if velocity.y > 0 else State.STATE_JUMP
 
 func _apply_ground_movement(input_dir: float) -> void:
 	current_gravity = gravity
@@ -189,6 +204,9 @@ func _update_sprite_direction() -> void:
 		fairy.flip_h = true
 
 func handle_death() -> void:
+	if is_dead:
+		return
+
 	for i in get_slide_collision_count():
 		var collision := get_slide_collision(i)
 		var collider := collision.get_collider()
@@ -203,20 +221,21 @@ func handle_death() -> void:
 				var is_hazard: bool = data.get_custom_data("isHazard")
 				if is_hazard:
 					die()
+					return
 
 func handle_jump() -> void:
-	if Input.is_action_just_pressed("jump"):
+	if Input.is_action_just_pressed("jump") and can_move:
 		if is_on_floor() or not coyote_timer.is_stopped():
 			if on_ice:
-				print_debug("On ice")
 				velocity.x *= 1.30
 			velocity.y = JUMP_FORCE
+			animated_sprite_2d.play("jump")
 		elif is_on_wall_only() or not wall_coyote_timer.is_stopped():
 			var jump_dir := get_wall_normal()
 			velocity.x = jump_dir.x * WALL_JUMP_PUSHBACK
 			velocity.y = JUMP_FORCE
 	
-	if Input.is_action_just_released("jump"):
+	if Input.is_action_just_released("jump") and velocity.y < 0 and can_move:
 		velocity.y *= 0.5
 
 func get_current_gravity() -> float:
@@ -226,10 +245,22 @@ func get_current_gravity() -> float:
 		return gravity
 
 func handle_animation() -> void:
-	if _input_direction != 0:
-		animated_sprite_2d.play("run")
-	else:
-		animated_sprite_2d.play("idle")
+	match state:
+		State.STATE_IDLE:
+			animated_sprite_2d.play("idle")
+		State.STATE_RUN:
+			animated_sprite_2d.play("run")
+		State.STATE_JUMP:
+			animated_sprite_2d.play("jump")
+		State.STATE_FALL:
+			animated_sprite_2d.play("fall")
+
+	# if velocity.y > 0:
+	# 	animated_sprite_2d.play("fall")
+	# if _input_direction != 0:
+	# 	animated_sprite_2d.play("run")
+	# else:
+	# 	animated_sprite_2d.play("idle")
 
 func handle_friction() -> void:
 	if not is_on_floor():
@@ -265,11 +296,17 @@ func handle_friction() -> void:
 func reset() -> void:
 	velocity = Vector2.ZERO
 	is_dead = false
+	can_move = false
+	await get_tree().create_timer(0.5).timeout
+	can_move = true
 
 func die() -> void:
-	print_debug("Player died.")
+	if is_dead:
+		return
 	is_dead = true
-	await get_tree().create_timer(0.5).timeout
+	died.emit()
+	_is_charging_ability = false
+	await get_tree().create_timer(0.33).timeout
 	GameManager.respawn_player()
 
 func _draw() -> void:

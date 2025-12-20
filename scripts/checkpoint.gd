@@ -10,4 +10,3 @@ func activate():
 	is_activated = true
 	GameManager.set_checkpoint(get_parent().name, global_position)
 
-	print_debug(str("Activated at: ", global_position))

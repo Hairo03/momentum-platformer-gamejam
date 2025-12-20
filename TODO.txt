@@ -1,0 +1,8 @@
+## TODO
+
+* juice
+* more level
+* Less airtime
+* background art
+* menu and ui?
+* lanterns and lighting
