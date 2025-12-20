@@ -130,7 +130,7 @@ position = Vector2(0, 108)
 
 [node name="Player" parent="." groups=["Player"] instance=ExtResource("1_0wfyh")]
 z_index = 1
-position = Vector2(-202, 75)
+position = Vector2(-202, 74)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 position = Vector2(51, 0)
@@ -149,7 +149,7 @@ offset_left = 16.0
 offset_top = 12.0
 offset_right = 115.0
 offset_bottom = 35.0
-text = "Deaths: "
+text = "Deaths: 0"
 label_settings = SubResource("LabelSettings_tefeu")
 
 [node name="GridContainer" type="CenterContainer" parent="Player/Camera2D/UI"]

@@ -7,6 +7,7 @@ extends CharacterBody2D
 @onready var power_timer: Timer = $PowerTimer
 @onready var coyote_timer: Timer = $CoyoteTimer
 @onready var wall_coyote_timer: Timer = $WallCoyoteTimer
+@onready var jump_buffer_timer: Timer = $JumpBufferTimer
 
 # Signals
 signal died
@@ -24,6 +25,7 @@ const AIR_ACCELERATION: float = 0.05
 const AIR_DECELERATION: float = 0.005
 const AIR_TURN_SPEED: float = 0.015
 const AIR_BRAKE_SPEED: float = 0.1
+const WALL_SLIDE_SPEED: float = 100.0
 
 # Ability Constants
 const ABILITY_DRAG: float = 0.08
@@ -48,9 +50,10 @@ var is_dead: bool = false
 var on_ice: bool = false
 var _input_direction: float = 0.0
 var can_move: bool = true 
+var jump_available: bool = true
+var jump_buffered := false
 
 var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
-var wall_gravity: float = gravity / 10
 var current_gravity: float = gravity
 
 enum State {
@@ -81,7 +84,7 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
-	current_gravity = get_current_gravity()
+	current_gravity = gravity
 	_input_direction = Input.get_axis("left", "right")
 
 	handle_movement(delta)
@@ -150,6 +153,9 @@ func _apply_gravity(delta: float) -> void:
 		velocity = velocity.lerp(Vector2.ZERO, ABILITY_DRAG)
 	else:
 		velocity.y += current_gravity * delta
+
+		if is_on_wall() and velocity.y > 0:
+			velocity.y = minf(velocity.y, WALL_SLIDE_SPEED)
 
 func _apply_horizontal_movement(input_dir: float) -> void:
 	if _is_charging_ability or !can_move:
@@ -230,19 +236,31 @@ func handle_jump() -> void:
 				velocity.x *= 1.30
 			velocity.y = JUMP_FORCE
 			animated_sprite_2d.play("jump")
+			_play_jump_stretch()
 		elif is_on_wall_only() or not wall_coyote_timer.is_stopped():
 			var jump_dir := get_wall_normal()
 			velocity.x = jump_dir.x * WALL_JUMP_PUSHBACK
 			velocity.y = JUMP_FORCE
+		else:
+			jump_buffer_timer.start()
+			jump_buffered = true
+	elif jump_buffered and !jump_buffer_timer.is_stopped() and is_on_floor():
+			velocity.y = JUMP_FORCE
+			jump_buffered = false
 	
 	if Input.is_action_just_released("jump") and velocity.y < 0 and can_move:
 		velocity.y *= 0.5
 
-func get_current_gravity() -> float:
-	if is_on_wall_only() and velocity.y > 0:
-		return wall_gravity
-	else:
-		return gravity
+func _play_jump_stretch():
+	var _player_tween := get_tree().create_tween()
+	_player_tween.tween_property(animated_sprite_2d, "scale:y", 1.2, 0.2)
+	await _player_tween.tween_property(animated_sprite_2d, "scale:y", 1, 0.2).finished
+	_player_tween.kill()
+
+func _play_death_glow():
+	var _player_tween := get_tree().create_tween()
+	_player_tween.tween_property(self, "modulate", Color.RED, 0.2)
+	_player_tween.tween_property(self, "modulate", Color.WHITE, 0.2)
 
 func handle_animation() -> void:
 	match state:
@@ -254,13 +272,6 @@ func handle_animation() -> void:
 			animated_sprite_2d.play("jump")
 		State.STATE_FALL:
 			animated_sprite_2d.play("fall")
-
-	# if velocity.y > 0:
-	# 	animated_sprite_2d.play("fall")
-	# if _input_direction != 0:
-	# 	animated_sprite_2d.play("run")
-	# else:
-	# 	animated_sprite_2d.play("idle")
 
 func handle_friction() -> void:
 	if not is_on_floor():
@@ -306,6 +317,7 @@ func die() -> void:
 	is_dead = true
 	died.emit()
 	_is_charging_ability = false
+	_play_death_glow()
 	await get_tree().create_timer(0.33).timeout
 	GameManager.respawn_player()
 

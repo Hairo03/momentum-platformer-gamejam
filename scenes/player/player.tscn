@@ -118,9 +118,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_75vfm")
 }],
-"loop": true,
+"loop": false,
 "name": &"die",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -229,8 +229,9 @@ shape = SubResource("RectangleShape2D_gmlin")
 texture_filter = 1
 position = Vector2(0, -2)
 sprite_frames = SubResource("SpriteFrames_7lmhl")
-animation = &"fall"
-frame_progress = 0.53813964
+animation = &"die"
+frame = 3
+frame_progress = 1.0
 
 [node name="Fairy" type="Sprite2D" parent="."]
 z_index = 1
@@ -249,7 +250,7 @@ wait_time = 0.1
 one_shot = true
 
 [node name="JumpBufferTimer" type="Timer" parent="."]
-wait_time = 0.199
+wait_time = 0.1
 one_shot = true
 
 [node name="WallCoyoteTimer" type="Timer" parent="."]
