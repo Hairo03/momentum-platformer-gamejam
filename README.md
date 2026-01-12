@@ -1,6 +1,8 @@
-# Momentum Platformer Prototype
+# Momentum Platformer
 
 A precision 2D platformer focusing on fluid movement and momentum preservation. Created for [Godot Wild Jam #88](https://itch.io/jam/godot-wild-jam-88).
+
+Can be played on [Itch.io](https://hairo03.itch.io/the-frozen-dungeon).
 
 ## 🎮 About
 
