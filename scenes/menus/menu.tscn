@@ -1,0 +1,75 @@
+[gd_scene load_steps=6 format=3 uid="uid://2bwr6oocpw2l"]
+
+[ext_resource type="Texture2D" uid="uid://c22bnilgqxnxh" path="res://assets/sprites/background.png" id="1_63g1t"]
+[ext_resource type="Script" uid="uid://b7apfxr1vrgn2" path="res://scripts/menu.gd" id="1_cfcag"]
+[ext_resource type="Texture2D" uid="uid://cuqmab2lk6y0s" path="res://assets/sprites/middleground.png" id="2_65ltr"]
+[ext_resource type="Theme" uid="uid://dyynrcb5407mw" path="res://scenes/menus/menu.tres" id="3_65ltr"]
+[ext_resource type="FontFile" uid="uid://cby11q4103kcr" path="res://assets/fonts/PixelOperator8.ttf" id="5_sf4ia"]
+
+[node name="Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_cfcag")
+
+[node name="Background" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 0
+
+[node name="Parallax2D" type="Parallax2D" parent="Background"]
+repeat_size = Vector2(480, 0)
+autoscroll = Vector2(5, 0)
+
+[node name="TextureRect" type="TextureRect" parent="Background/Parallax2D"]
+offset_right = 480.0
+offset_bottom = 270.0
+texture = ExtResource("1_63g1t")
+
+[node name="TextureRect2" type="TextureRect" parent="Background"]
+layout_mode = 1
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_65ltr")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MenuVBox" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/MenuVBox"]
+custom_minimum_size = Vector2(181, 0)
+layout_mode = 2
+theme = ExtResource("3_65ltr")
+theme_override_font_sizes/font_size = 16
+text = "The Frozen Dungeon"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ButtonsVBox" type="VBoxContainer" parent="CenterContainer/MenuVBox"]
+custom_minimum_size = Vector2(99, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="StartButton" type="Button" parent="CenterContainer/MenuVBox/ButtonsVBox"]
+layout_mode = 2
+theme = ExtResource("3_65ltr")
+theme_override_fonts/font = ExtResource("5_sf4ia")
+text = "Start"
+
+[node name="QuitButton" type="Button" parent="CenterContainer/MenuVBox/ButtonsVBox"]
+layout_mode = 2
+theme = ExtResource("3_65ltr")
+theme_override_fonts/font = ExtResource("5_sf4ia")
+text = "Quit"
+
+[connection signal="pressed" from="CenterContainer/MenuVBox/ButtonsVBox/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="CenterContainer/MenuVBox/ButtonsVBox/QuitButton" to="." method="_on_quit_button_pressed"]

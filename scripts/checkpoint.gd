@@ -9,4 +9,3 @@ func _on_area_2d_body_entered(body: Node2D) -> void:
 func activate():
 	is_activated = true
 	GameManager.set_checkpoint(get_parent().name, global_position)
-

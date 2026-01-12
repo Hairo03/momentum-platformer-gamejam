@@ -11,6 +11,10 @@ extends CharacterBody2D
 
 # Signals
 signal died
+signal jump
+signal walk
+signal ability
+signal charge
 
 # Movement Constants
 const MOVE_SPEED: int = 120
@@ -22,7 +26,7 @@ const GROUND_FRICTION: float = 0.10
 const ICE_FRICTION: float = 0.005
 const MOMENTUM_FRICTION: float = 0.05
 const AIR_ACCELERATION: float = 0.05
-const AIR_DECELERATION: float = 0.005
+const AIR_DECELERATION: float = 0.0025
 const AIR_TURN_SPEED: float = 0.015
 const AIR_BRAKE_SPEED: float = 0.1
 const WALL_SLIDE_SPEED: float = 100.0
@@ -52,6 +56,7 @@ var _input_direction: float = 0.0
 var can_move: bool = true 
 var jump_available: bool = true
 var jump_buffered := false
+var footstep_frames := [1, 5, 9, 13]
 
 var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 var current_gravity: float = gravity
@@ -65,15 +70,22 @@ enum State {
 var state: State = State.STATE_IDLE
 
 var _fairy_tween: Tween
+var _filter_tween: Tween
+
+func _ready():
+	GameManager.player = self
 
 func _process(_delta: float) -> void:
 	if is_dead:
 		return
-
+	
+	_filter_tween = get_tree().create_tween()
 	_fairy_tween = get_tree().create_tween()
 	if _is_charging_ability:
 		_fairy_tween.tween_property(fairy, "position", _trajectory_end_point, 0.2)
+		_filter_tween.tween_property(self, "modulate", Color(1.892, 1.892, 1.892), 0.1)
 	else:
+		_filter_tween.tween_property(self, "modulate", Color.WHITE, 0.1)
 		_fairy_tween.tween_property(fairy, "position", FAIRY_REST_POSITION, 0.1)
 		if _ability_available:
 			_fairy_tween.tween_property(fairy, "modulate", Color(1, 1, 1, 1), 0.1)
@@ -113,6 +125,9 @@ func handle_ability() -> void:
 	if Input.is_action_pressed("left_mouse"):
 		_charge_ability()
 	
+	if Input.is_action_just_pressed("left_mouse"):
+		charge.emit()
+	
 	if Input.is_action_just_released("left_mouse") and _is_charging_ability:
 		_release_ability()
 
@@ -130,6 +145,7 @@ func _release_ability() -> void:
 	_ability_available = false
 	_is_charging_ability = false
 	cooldown_timer.start()
+	ability.emit()
 
 func _can_use_ability() -> bool:
 	if is_dead:
@@ -234,22 +250,26 @@ func handle_jump() -> void:
 		if is_on_floor() or not coyote_timer.is_stopped():
 			if on_ice:
 				velocity.x *= 1.30
-			velocity.y = JUMP_FORCE
-			animated_sprite_2d.play("jump")
-			_play_jump_stretch()
+			player_jump()
 		elif is_on_wall_only() or not wall_coyote_timer.is_stopped():
 			var jump_dir := get_wall_normal()
 			velocity.x = jump_dir.x * WALL_JUMP_PUSHBACK
-			velocity.y = JUMP_FORCE
+			player_jump()
 		else:
 			jump_buffer_timer.start()
 			jump_buffered = true
 	elif jump_buffered and !jump_buffer_timer.is_stopped() and is_on_floor():
-			velocity.y = JUMP_FORCE
+			player_jump()
 			jump_buffered = false
 	
 	if Input.is_action_just_released("jump") and velocity.y < 0 and can_move:
 		velocity.y *= 0.5
+
+func player_jump():
+	velocity.y = JUMP_FORCE
+	animated_sprite_2d.play("jump")
+	_play_jump_stretch()
+	jump.emit()
 
 func _play_jump_stretch():
 	var _player_tween := get_tree().create_tween()
@@ -338,3 +358,15 @@ func _draw() -> void:
 
 			draw_line(_trajectory_end_point, next_point, Color(1, 1, 1, 0.25), 2.0)
 			_trajectory_end_point = next_point
+
+func _on_animated_sprite_2d_frame_changed() -> void:
+	if animated_sprite_2d.animation == "idle":
+		return
+	if animated_sprite_2d.animation == "jump":
+		return
+	if animated_sprite_2d.animation == "fall":
+		return
+	if _is_charging_ability:
+		return
+	
+	if animated_sprite_2d.frame in footstep_frames: walk.emit()

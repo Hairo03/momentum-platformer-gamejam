@@ -1,0 +1,32 @@
+[gd_scene load_steps=7 format=3 uid="uid://dy8qc21aakkyl"]
+
+[ext_resource type="Script" uid="uid://c7o8k707efdt1" path="res://scripts/audio_manager.gd" id="1_8qd8g"]
+[ext_resource type="AudioStream" uid="uid://ouud17bshwu2" path="res://assets/sounds/jump.wav" id="2_m6ggh"]
+[ext_resource type="AudioStream" uid="uid://bbhbgjjwvvwpr" path="res://assets/sounds/tap.wav" id="3_aoitu"]
+[ext_resource type="AudioStream" uid="uid://cn0sgtvlfap80" path="res://assets/sounds/hurt.wav" id="4_njtn3"]
+[ext_resource type="AudioStream" uid="uid://cdh5ti8g4aehg" path="res://assets/sounds/power_up.wav" id="5_aoitu"]
+[ext_resource type="AudioStream" uid="uid://cdxjcywt0yv84" path="res://assets/sounds/explosion.wav" id="5_njtn3"]
+
+[node name="AudioManager" type="Node2D"]
+script = ExtResource("1_8qd8g")
+
+[node name="Jump" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_m6ggh")
+volume_db = -9.0
+pitch_scale = 0.65
+
+[node name="Footsteps" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_aoitu")
+volume_db = -15.0
+
+[node name="Hurt" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_njtn3")
+volume_db = -9.0
+
+[node name="Ability" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_njtn3")
+volume_db = -15.0
+
+[node name="Charge" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_aoitu")
+volume_db = -12.0

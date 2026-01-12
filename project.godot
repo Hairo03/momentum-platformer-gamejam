@@ -11,13 +11,13 @@ config_version=5
 [application]
 
 config/name="momentum platformer prototype"
-run/main_scene="uid://co2wdcxpoea55"
+run/main_scene="uid://2bwr6oocpw2l"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
-GameManager="*res://scripts/game_manager.gd"
+GameManager="*res://scenes/game_manager.tscn"
 
 [display]
 

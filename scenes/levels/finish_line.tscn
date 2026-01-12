@@ -1,0 +1,35 @@
+[gd_scene load_steps=4 format=3 uid="uid://dg5mkydxsc6vn"]
+
+[ext_resource type="Texture2D" uid="uid://dmkt2yn1fpmrx" path="res://assets/sprites/final_fruit.png" id="1_586sa"]
+
+[sub_resource type="GDScript" id="GDScript_586sa"]
+script/source = "extends Node2D
+
+var tween: Tween
+
+func _ready() -> void:
+	tween = get_tree().create_tween().set_loops()
+	tween.tween_property(self, \"position:y\", position.y - 2, 1).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(self, \"position:y\", position.y + 2, 1).set_trans(Tween.TRANS_SINE)
+
+func _on_area_2d_body_entered(body: Node2D) -> void:
+	if body.is_in_group(\"Player\"):
+		GameManager.finish_game()
+"
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_586sa"]
+radius = 7.0
+
+[node name="FinishLine" type="Node2D"]
+script = SubResource("GDScript_586sa")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_586sa")
+
+[node name="Area2D" type="Area2D" parent="."]
+visible = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_586sa")
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]

@@ -229,9 +229,7 @@ shape = SubResource("RectangleShape2D_gmlin")
 texture_filter = 1
 position = Vector2(0, -2)
 sprite_frames = SubResource("SpriteFrames_7lmhl")
-animation = &"die"
-frame = 3
-frame_progress = 1.0
+animation = &"run"
 
 [node name="Fairy" type="Sprite2D" parent="."]
 z_index = 1
@@ -262,3 +260,5 @@ scale = Vector2(1.40625, 1.40625)
 color = Color(1, 0.811, 0.45999998, 1)
 energy = 0.38
 texture = SubResource("GradientTexture2D_lvxji")
+
+[connection signal="frame_changed" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_frame_changed"]

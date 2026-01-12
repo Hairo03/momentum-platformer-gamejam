@@ -1,0 +1,131 @@
+[gd_scene load_steps=9 format=3 uid="uid://bgtl7afhivkao"]
+
+[ext_resource type="Script" uid="uid://bppk13bepypj7" path="res://scripts/game_manager.gd" id="1_ufptf"]
+[ext_resource type="Shader" uid="uid://d2723ydc7j1lg" path="res://assets/transition.gdshader" id="2_lafvb"]
+[ext_resource type="PackedScene" uid="uid://vnlwx8g21lcb" path="res://scenes/menus/finish_screen.tscn" id="2_udu3i"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tnfsk"]
+shader = ExtResource("2_lafvb")
+shader_parameter/progress = 0.0
+shader_parameter/reverse = true
+shader_parameter/numberOfTiles = Vector2(30, 16.875)
+shader_parameter/pixelsPrTile = Vector2(8, 8)
+
+[sub_resource type="Animation" id="Animation_sugp2"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("GridContainer/ColorRect:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("GridContainer/ColorRect:material:shader_parameter/reverse")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_tbgi4"]
+resource_name = "transition_in"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("GridContainer/ColorRect:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("GridContainer/ColorRect:material:shader_parameter/reverse")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_jyhfs"]
+resource_name = "transition"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("GridContainer/ColorRect:material:shader_parameter/progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("GridContainer/ColorRect:material:shader_parameter/reverse")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_tefeu"]
+_data = {
+&"RESET": SubResource("Animation_sugp2"),
+&"transition_in": SubResource("Animation_tbgi4"),
+&"transition_out": SubResource("Animation_jyhfs")
+}
+
+[node name="GameManager" type="CanvasLayer"]
+process_mode = 3
+script = ExtResource("1_ufptf")
+win_screen = ExtResource("2_udu3i")
+
+[node name="GridContainer" type="CenterContainer" parent="."]
+texture_filter = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="ColorRect" type="ColorRect" parent="GridContainer"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_tnfsk")
+custom_minimum_size = Vector2(480, 270)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_tefeu")
+}
